@@ -2,9 +2,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from rest_framework.fields import CharField
-from django.contrib.auth import get_user_model
 
-User = get_user_model()
 
 PERMISSION_LEVEL_CHOICES = [
     ('admin', 'Администратор'),
@@ -51,6 +49,7 @@ class Titles(models.Model):
     year = models.DateField()
     category = models.ForeignKey('Categories',
                                  on_delete=models.SET_NULL,
+                                 null=True,
                                  related_name='category')
     genre = models.ManyToManyField(Genres)
 
@@ -65,7 +64,7 @@ class Titles(models.Model):
 class Review(models.Model):
     text = models.TextField(verbose_name='Текст')
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='reviews',
+        Profile, on_delete=models.CASCADE, related_name='reviews',
         verbose_name='Автор'
     )
     title = models.ForeignKey(
@@ -108,7 +107,7 @@ class Review(models.Model):
 class Comment(models.Model):
     text = models.TextField(verbose_name='Текст')
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='comments',
+        Profile, on_delete=models.CASCADE, related_name='comments',
         verbose_name='Автор'
     )
     review = models.ForeignKey(

@@ -37,8 +37,9 @@ class CommentSerializer(serializers.ModelSerializer):
         slug_field='username',
         default=serializers.CurrentUserDefault()
     )
+    """
     review = serializers.HiddenField()  # !!!!
-
+    """
     class Meta:
         model = Comment
         fields = '__all__'
@@ -50,8 +51,9 @@ class ReviewSerializer(serializers.ModelSerializer):
         slug_field='username',
         default=serializers.CurrentUserDefault()
     )
+    """
     title = serializers.HiddenField()  # !!!!
-
+    """
     class Meta:
         model = Review
         fields = '__all__'
