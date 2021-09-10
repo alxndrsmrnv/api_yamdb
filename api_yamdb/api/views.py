@@ -10,7 +10,7 @@ from rest_framework.pagination import PageNumberPagination
 
 from .serializers import (ProfileSerializer, CommentSerializer, ReviewSerializer,
                           CategoriesSerializer, GenresSerializer, TitlesSerializer)
-from api.permissions import IsOwnerOrReadOnly
+from api.permissions import IsOwnerModeratorAdminOrReadOnly
 from reviews.models import Categories, Genres, Titles
 
 
@@ -43,14 +43,14 @@ class ProfileViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     pagination_class = PageNumberPagination
-    permission_classes = (IsOwnerOrReadOnly,)
+    permission_classes = (IsOwnerModeratorAdminOrReadOnly,)
 
     def get_queryset(self):
         title = get_object_or_404(Titles, id=self.kwargs.get('title_id'))
         review = get_object_or_404(
             title.reviews, id=self.kwargs.get('review_id')
         )
-        return review.comments
+        return review.comments.all()
 
     def perform_create(self, serializer):
         title = get_object_or_404(Titles, id=self.kwargs.get('title_id'))
@@ -63,11 +63,11 @@ class CommentViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     pagination_class = PageNumberPagination
-    permission_classes = (IsOwnerOrReadOnly,)
+    permission_classes = (IsOwnerModeratorAdminOrReadOnly,)
 
     def get_queryset(self):
         title = get_object_or_404(Titles, id=self.kwargs.get('title_id'))
-        return title.reviews
+        return title.reviews.all()
 
     def perform_create(self, serializer):
         title = get_object_or_404(Titles, id=self.kwargs.get('title_id'))

@@ -1,7 +1,7 @@
 from rest_framework import permissions
 
 
-class IsOwnerOrReadOnly(permissions.BasePermission):
+class IsOwnerModeratorAdminOrReadOnly(permissions.BasePermission):
     message = 'Нельзя изменять или удалять чужой контент'
 
     def has_permission(self, request, view):

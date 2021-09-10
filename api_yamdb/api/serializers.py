@@ -1,5 +1,6 @@
 from rest_framework import fields, serializers
-from django.contrib.auth import get_user_model
+
+from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
@@ -7,7 +8,7 @@ from rest_framework.relations import SlugRelatedField, StringRelatedField
 
 from reviews.models import Comment, Review, Categories, Genres, Titles, Profile
 
-User = get_user_model()
+
 
 class ProfileRegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
@@ -37,12 +38,10 @@ class CommentSerializer(serializers.ModelSerializer):
         slug_field='username',
         default=serializers.CurrentUserDefault()
     )
-    """
-    review = serializers.HiddenField()  # !!!!
-    """
+
     class Meta:
         model = Comment
-        fields = '__all__'
+        exclude = ('review',)
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -51,25 +50,23 @@ class ReviewSerializer(serializers.ModelSerializer):
         slug_field='username',
         default=serializers.CurrentUserDefault()
     )
-    """
-    title = serializers.HiddenField()  # !!!!
-    """
+
     class Meta:
         model = Review
-        fields = '__all__'
-        validators = []
+        exclude = ('title',)
 
     def validate_score(self, value):
-        if not isinstance(value, int) or not value in range(1, 11):
+        if not isinstance(value, int) or not (value in range(1, 11)):
             raise serializers.ValidationError(
                 'Оценка должна быть целым числом от 1 до 10'
             )
         return value
 
     def validate(self, data):
-        title = data.get('title')
-        author = self.context['request'].user
-        if Review.objects.filter(author=author, title=title).exist():
+        view = self.context['view']
+        title = get_object_or_404(Titles, id=view.kwargs.get('title_id'))
+        if Review.objects.filter(author=self.context['request'].user,
+                                 title=title).exists():
             raise serializers.ValidationError(
                 'Можно оставить только один отзыв на произведение'
             )
