@@ -46,7 +46,7 @@ class Genres(models.Model):
 
 class Titles(models.Model):
     name = models.CharField(max_length=50)
-    year = models.DateField()
+    year = models.PositiveSmallIntegerField()
     category = models.ForeignKey('Categories',
                                  on_delete=models.SET_NULL,
                                  null=True,
