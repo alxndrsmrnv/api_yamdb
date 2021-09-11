@@ -1,3 +1,5 @@
+from re import search
+from django.http import request
 from rest_framework import fields, serializers
 
 from django.shortcuts import get_object_or_404
@@ -20,13 +22,19 @@ class ProfileRegisterSerializer(serializers.ModelSerializer):
         model = Profile
         fields = ('email', 'username')
 
+    def validate_username(self, value):
+        if Profile.objects.filter(username=value):
+            raise serializers.ValidationError("Name already exists!")
+        return value
+
 
 class TokenSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=150, required=True)
     confirmation_code = serializers.CharField(max_length=150, required=True)
 
-        
+
 class ProfileSerializer(serializers.ModelSerializer):
+    search = serializers.StringRelatedField()
     class Meta:
         model = Profile
         fields = '__all__'
