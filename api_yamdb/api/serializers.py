@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
-from rest_framework.relations import SlugRelatedField, StringRelatedField
+from rest_framework.relations import SlugRelatedField, StringRelatedField  # Возможно нужно все из serializers использовать
 
 from reviews.models import Comment, Review, Categories, Genres, Titles, Profile
 

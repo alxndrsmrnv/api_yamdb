@@ -1,6 +1,7 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.conf import settings
 from rest_framework.fields import CharField
 
 
@@ -64,7 +65,7 @@ class Titles(models.Model):
 class Review(models.Model):
     text = models.TextField(verbose_name='Текст')
     author = models.ForeignKey(
-        Profile, on_delete=models.CASCADE, related_name='reviews',
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reviews',
         verbose_name='Автор'
     )
     title = models.ForeignKey(
@@ -107,7 +108,7 @@ class Review(models.Model):
 class Comment(models.Model):
     text = models.TextField(verbose_name='Текст')
     author = models.ForeignKey(
-        Profile, on_delete=models.CASCADE, related_name='comments',
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='comments',
         verbose_name='Автор'
     )
     review = models.ForeignKey(
@@ -125,5 +126,3 @@ class Comment(models.Model):
     def __str__(self):
         return f'Комментарий: {self.id}, Автор: {self.author.username}; ' \
                f'Отзыв: {self.review.id}; Текст: {self.text[:15]}'
-
-
