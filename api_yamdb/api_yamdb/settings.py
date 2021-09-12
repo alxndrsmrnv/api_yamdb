@@ -118,6 +118,12 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-   'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-   'AUTH_HEADER_TYPES': ('Bearer',),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_FILE_PATH = 'C:/Dev/api_yamdb/api_yamdb'
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 25
+
