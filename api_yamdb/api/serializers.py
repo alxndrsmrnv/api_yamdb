@@ -6,7 +6,7 @@ from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
 from rest_framework.relations import SlugRelatedField, StringRelatedField  # Возможно нужно все из serializers использовать
 
-from reviews.models import Comment, Review, Categories, Genres, Titles, Profile
+from reviews.models import Comment, Review, Categories, Genres, Title, Profile
 
 
 
@@ -62,15 +62,22 @@ class ReviewSerializer(serializers.ModelSerializer):
             )
         return value
 
-    def validate(self, data):
+    def create(self, validated_data):
         view = self.context['view']
-        title = get_object_or_404(Titles, id=view.kwargs.get('title_id'))
+        title = get_object_or_404(Title, id=view.kwargs.get('title_id'))
         if Review.objects.filter(author=self.context['request'].user,
                                  title=title).exists():
             raise serializers.ValidationError(
                 'Можно оставить только один отзыв на произведение'
             )
-        return data
+        review = Review.objects.create(**validated_data)
+        return review
+
+    def update(self, instance, validated_data):
+        instance.text = validated_data.get('text', instance.text)
+        instance.score = validated_data.get('score', instance.score)
+        instance.save()
+        return instance
 """Алексей Третий Разработчик"""
 
 
