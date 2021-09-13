@@ -1,25 +1,25 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from rest_framework.fields import CharField
-
+from datetime import date
 
 PERMISSION_LEVEL_CHOICES = [
-    ('admin', 'Администратор'),
-    ('moderator', 'Модератор'),
-    ('user', 'Пользователь')
+    ('admin', 'admin'),
+    ('moderator', 'moderator'),
+    ('user', 'user'),
 ]
+
 
 class Profile(AbstractUser):
     bio = models.TextField('Биография',
-                           blank=True)
+                           blank=True, null=True)
     role = models.CharField(max_length=10,
                             choices=PERMISSION_LEVEL_CHOICES,
                             default='user')
-    confirmation_code = models.CharField(max_length=100)
+    confirmation_code = models.CharField(max_length=100, blank=True, null=True)
 
 
-class Categories(models.Model):
+class Category(models.Model):
     name = models.CharField(max_length=50,
                             verbose_name='Наименование категории')
     slug = models.SlugField(max_length=255,
@@ -32,7 +32,7 @@ class Categories(models.Model):
         verbose_name_plural = 'Категории'
 
 
-class Genres(models.Model):
+class Genre(models.Model):
     name = models.CharField(max_length=50, verbose_name='Наименование жанра')
     slug = models.SlugField(max_length=255,
                             db_index=True,
@@ -44,21 +44,19 @@ class Genres(models.Model):
         verbose_name_plural = 'Жанры'
 
 
-class Titles(models.Model):
+class Title(models.Model):
     name = models.CharField(max_length=50)
-    year = models.DateField()
-    category = models.ForeignKey('Categories',
+    year = models.PositiveSmallIntegerField('year', validators=[
+        MaxValueValidator(limit_value=date.today().year)])
+    category = models.ForeignKey('Category',
                                  on_delete=models.SET_NULL,
                                  null=True,
                                  related_name='category')
-    genre = models.ManyToManyField(Genres)
+    genre = models.ManyToManyField(Genre)
+    description = models.TextField(verbose_name='Описание')
 
     def __str__(self):
-        return self.title
-
-
-
-
+        return self.name
 
 
 class Review(models.Model):
@@ -68,7 +66,7 @@ class Review(models.Model):
         verbose_name='Автор'
     )
     title = models.ForeignKey(
-        Titles, on_delete=models.CASCADE, related_name='reviews',
+        Title, on_delete=models.CASCADE, related_name='reviews',
         verbose_name='Произведение'
     )
     score = models.PositiveSmallIntegerField(
@@ -125,5 +123,3 @@ class Comment(models.Model):
     def __str__(self):
         return f'Комментарий: {self.id}, Автор: {self.author.username}; ' \
                f'Отзыв: {self.review.id}; Текст: {self.text[:15]}'
-
-

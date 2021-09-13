@@ -7,13 +7,22 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.mixins import (CreateModelMixin,
+                                   DestroyModelMixin,
+                                   ListModelMixin)
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 
-from .serializers import (ProfileSerializer, CommentSerializer, ReviewSerializer,
-                          CategoriesSerializer, GenresSerializer, TitlesSerializer)
-from api.permissions import IsOwnerOrReadOnly
-from reviews.models import Categories, Genres, Titles
 
-
+from .serializers import (ProfileSerializer,
+                          CommentSerializer,
+                          ReviewSerializer,
+                          CategorySerializer,
+                          GenreSerializer,
+                          TitleSerializer, TitleSerializerCreate)
+from .filters import TitlesFilter
+from api.permissions import IsOwnerOrReadOnly, AdminOrReadOnly
+from reviews.models import Category, Genre, Title
 
 
 class CreateProfileView(generics.CreateAPIView):
@@ -32,12 +41,11 @@ class TokenView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
-    serializer = ProfileSerializer
-    permission_classes = (permissions.IsAdminUser,
-                          permissions.IsAuthenticatedOrReadOnly)
+    serializer_class = ProfileSerializer
+    # permission_classes = (permissions.IsAdminUser,
+    #                       permissions.IsAuthenticatedOrReadOnly)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -46,14 +54,14 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = (IsOwnerOrReadOnly,)
 
     def get_queryset(self):
-        title = get_object_or_404(Titles, id=self.kwargs.get('title_id'))
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
         review = get_object_or_404(
             title.reviews, id=self.kwargs.get('review_id')
         )
         return review.comments
 
     def perform_create(self, serializer):
-        title = get_object_or_404(Titles, id=self.kwargs.get('title_id'))
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
         review = get_object_or_404(
             title.reviews, id=self.kwargs.get('review_id')
         )
@@ -66,23 +74,50 @@ class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = (IsOwnerOrReadOnly,)
 
     def get_queryset(self):
-        title = get_object_or_404(Titles, id=self.kwargs.get('title_id'))
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
         return title.reviews
 
     def perform_create(self, serializer):
-        title = get_object_or_404(Titles, id=self.kwargs.get('title_id'))
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
         serializer.save(author=self.request.user, title=title)
 
-class CategoriesViewSet(viewsets.ModelViewSet):
-    queryset = Categories.objects.all()
-    serializer_class = CategoriesSerializer
+
+class CreateDestroyListViewSet(CreateModelMixin,
+                               DestroyModelMixin,
+                               ListModelMixin,
+                               viewsets.GenericViewSet):
+    pass
 
 
-class GenresViewSet(viewsets.ModelViewSet):
-    queryset = Genres.objects.all()
-    serializer_class = GenresSerializer
+class GenresViewSet(CreateDestroyListViewSet):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    permission_classes = (AdminOrReadOnly,)
+    pagination_class = PageNumberPagination
+    lookup_field = 'slug'
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    search_fields = ('name',)
+
+
+class CategoriesViewSet(CreateDestroyListViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = (AdminOrReadOnly,)
+    pagination_class = PageNumberPagination
+    lookup_field = 'slug'
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    search_fields = ('name',)
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
-    queryset = Titles.objects.all()
-    serializer_class = TitlesSerializer
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    pagination_class = PageNumberPagination
+    permission_classes = (AdminOrReadOnly,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = TitlesFilter
+
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return TitleSerializer
+        return TitleSerializerCreate
