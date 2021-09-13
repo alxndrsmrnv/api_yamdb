@@ -1,5 +1,7 @@
 from rest_framework import permissions
-
+from rest_framework_simplejwt.models import TokenUser
+from rest_framework_simplejwt.authentication import JWTAuthentication, JWTTokenUserAuthentication
+from .utils import get_user
 
 class IsOwnerModeratorAdminOrReadOnly(permissions.BasePermission):
     message = 'Нельзя изменять или удалять чужой контент'
@@ -16,12 +18,15 @@ class IsOwnerModeratorAdminOrReadOnly(permissions.BasePermission):
 
 
 class IsRoleAdmin(permissions.BasePermission):
+    print('x')
     def has_permission(self, request, view):
-        return (
-            request.user
-            and request.user.is_authenticated
-            and request.user.role == "admin"
-        )
+        if request.headers.get('Authorization'):
+            user = get_user(request)
+            print(self)
+            return user.role == 'admin' or request.user.is_superuser or request.kwargs.get('pk') == 'me'
+    def has_object_permission(self, request, view, obj):
+        print(obj.owner)
+        return obj.owner == get_user(request)
 
 
 class IsRoleAdminOrOwner(permissions.BasePermission):

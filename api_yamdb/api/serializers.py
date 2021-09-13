@@ -1,7 +1,6 @@
 from re import search
 from django.http import request
 from rest_framework import fields, serializers
-
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from rest_framework.validators import UniqueValidator
@@ -34,13 +33,27 @@ class TokenSerializer(serializers.Serializer):
     )
     confirmation_code = serializers.CharField(max_length=150, required=True)
 
+class TokenRestoreSerializer(serializers.Serializer):
+    username = serializers.CharField(
+        max_length=150,
+        required=True,
+    )
+    email = serializers.EmailField(max_length=150, required=True)
+
 
 class ProfileSerializer(serializers.ModelSerializer):
-    search = serializers.StringRelatedField()
-
+    username = serializers.CharField(
+        required=True,
+        validators=[UniqueValidator(queryset=Profile.objects.all())]
+    )
+    email = serializers.EmailField(
+        required=True,
+        validators=[UniqueValidator(queryset=Profile.objects.all())]
+    )
     class Meta:
         model = Profile
-        fields = '__all__'
+        fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
+        #fields = '__all__'
 
 """Алексей Третий Разработчик"""
 class CommentSerializer(serializers.ModelSerializer):
