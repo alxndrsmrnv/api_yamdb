@@ -17,7 +17,6 @@ class IsOwnerModeratorAdminOrReadOnly(permissions.BasePermission):
                 or request.user.is_superuser)
 
 
-<<<<<<< HEAD
 class IsRoleAdmin(permissions.BasePermission):
 
     def has_permission(self, request, view):
@@ -35,7 +34,7 @@ class IsRoleAdminOrOwner(permissions.BasePermission):
         role = (obj.username == request.user.username)
         role = role or (request.user.role == "admin")
         return role
-=======
+
 class AdminOrReadOnly(permissions.IsAuthenticated):
     def has_permission(self, request, view):
         return (request.method in permissions.SAFE_METHODS
@@ -46,4 +45,3 @@ class AdminOrReadOnly(permissions.IsAuthenticated):
     #     return (request.user
     #             and request.user.is_authenticated
     #             and request.user.role == 'admin')
->>>>>>> cat-gen-tit.v2

@@ -14,14 +14,12 @@ from rest_framework_simplejwt.authentication import JWTAuthentication, JWTTokenU
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
-<<<<<<< HEAD
 from .utils import mail, get_user
 
 from .serializers import (ProfileSerializer, CommentSerializer, ReviewSerializer,
                           CategoriesSerializer, GenresSerializer, TitlesSerializer, TokenRestoreSerializer, ProfileSerializerAdmin)
 from api.permissions import IsOwnerModeratorAdminOrReadOnly
 from reviews.models import Categories, Genres, Title
-=======
 from rest_framework.mixins import (CreateModelMixin,
                                    DestroyModelMixin,
                                    ListModelMixin)
@@ -38,7 +36,6 @@ from .serializers import (ProfileSerializer,
 from .filters import TitlesFilter
 from api.permissions import IsOwnerOrReadOnly, AdminOrReadOnly
 from reviews.models import Category, Genre, Title
->>>>>>> cat-gen-tit.v2
 
 
 class CreateProfileView(generics.CreateAPIView):
@@ -99,7 +96,6 @@ class RestoreConfCodeView(generics.CreateAPIView):
 
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
-<<<<<<< HEAD
     serializer_class = ProfileSerializerAdmin
     permission_classes = (IsRoleAdmin,)
     filter_backends = (filters.SearchFilter,)
@@ -132,11 +128,6 @@ class ProfileViewSet(viewsets.ModelViewSet):
         self.perform_destroy(profile)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-=======
-    serializer_class = ProfileSerializer
-    # permission_classes = (permissions.IsAdminUser,
-    #                       permissions.IsAuthenticatedOrReadOnly)
->>>>>>> cat-gen-tit.v2
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -166,16 +157,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
-<<<<<<< HEAD
         return title.reviews.all()
-=======
-        return title.reviews
->>>>>>> cat-gen-tit.v2
 
     def perform_create(self, serializer):
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
         serializer.save(author=self.request.user, title=title)
-
 
 class CreateDestroyListViewSet(CreateModelMixin,
                                DestroyModelMixin,
