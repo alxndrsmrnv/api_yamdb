@@ -17,9 +17,9 @@ from rest_framework.pagination import PageNumberPagination
 from .utils import mail, get_user
 
 from .serializers import (ProfileSerializer, CommentSerializer, ReviewSerializer,
-                          CategoriesSerializer, GenresSerializer, TitlesSerializer, TokenRestoreSerializer, ProfileSerializerAdmin)
+                          TokenRestoreSerializer, ProfileSerializerAdmin)
 from api.permissions import IsOwnerModeratorAdminOrReadOnly
-from reviews.models import Categories, Genres, Title
+from reviews.models import Title
 from rest_framework.mixins import (CreateModelMixin,
                                    DestroyModelMixin,
                                    ListModelMixin)
@@ -34,7 +34,7 @@ from .serializers import (ProfileSerializer,
                           GenreSerializer,
                           TitleSerializer, TitleSerializerCreate)
 from .filters import TitlesFilter
-from api.permissions import IsOwnerOrReadOnly, AdminOrReadOnly
+from api.permissions import AdminOrReadOnly
 from reviews.models import Category, Genre, Title
 
 
