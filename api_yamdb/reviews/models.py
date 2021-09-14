@@ -17,7 +17,11 @@ class Profile(AbstractUser):
     role = models.CharField(max_length=10,
                             choices=PERMISSION_LEVEL_CHOICES,
                             default='user')
-    confirmation_code = models.CharField(max_length=100)
+    confirmation_code = models.CharField(max_length=12,
+                                         blank=True,
+                                         editable=False,
+                                         null=True,
+                                         unique=True)
 
 
 class Categories(models.Model):

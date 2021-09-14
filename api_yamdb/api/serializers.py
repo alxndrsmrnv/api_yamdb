@@ -1,35 +1,80 @@
+from random import choice, choices
+from re import search
+from django.http import request
 from rest_framework import fields, serializers
-
 from django.shortcuts import get_object_or_404
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
 from rest_framework.relations import SlugRelatedField, StringRelatedField  # Возможно нужно все из serializers использовать
 
+<<<<<<< HEAD
 from reviews.models import Comment, Review, Categories, Genres, Title, Profile
+=======
+from reviews.models import Comment, Review, Categories, Genres, Titles, Profile, PERMISSION_LEVEL_CHOICES
+>>>>>>> Profile2.0
 
 
 
 class ProfileRegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
-            required=True,
-            validators=[UniqueValidator(queryset=Profile.objects.all())]
-            )
-    username = serializers.CharField(required=True, max_length=150)
+        required=True,
+        validators=[UniqueValidator(queryset=Profile.objects.all())]
+    )
+    username = serializers.CharField(
+        required=True,
+        max_length=150,
+        validators=[UniqueValidator(queryset=Profile.objects.all())]
+    )
+
     class Meta:
         model = Profile
         fields = ('email', 'username')
 
 
 class TokenSerializer(serializers.Serializer):
-    username = serializers.CharField(max_length=150, required=True)
+    username = serializers.CharField(
+        max_length=150,
+        required=True,
+    )
     confirmation_code = serializers.CharField(max_length=150, required=True)
 
-        
-class ProfileSerializer(serializers.ModelSerializer):
+class TokenRestoreSerializer(serializers.Serializer):
+    username = serializers.CharField(
+        max_length=150,
+        required=True,
+    )
+    email = serializers.EmailField(max_length=150, required=True)
+
+
+class ProfileSerializerAdmin(serializers.ModelSerializer):
+    username = serializers.CharField(
+        required=True,
+        validators=[UniqueValidator(queryset=Profile.objects.all())]
+    )
+    email = serializers.EmailField(
+        required=True,
+        validators=[UniqueValidator(queryset=Profile.objects.all())]
+    )
     class Meta:
         model = Profile
-        fields = '__all__'
+        fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
+        #fields = '__all__'
+
+class ProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        required=True,
+        validators=[UniqueValidator(queryset=Profile.objects.all())]
+    )
+    email = serializers.EmailField(
+        required=True,
+        validators=[UniqueValidator(queryset=Profile.objects.all())]
+    )
+    role = serializers.ReadOnlyField()
+    class Meta:
+        model = Profile
+        fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
+        #fields = '__all__'
 
 """Алексей Третий Разработчик"""
 class CommentSerializer(serializers.ModelSerializer):
