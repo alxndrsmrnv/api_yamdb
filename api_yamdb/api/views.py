@@ -1,41 +1,24 @@
-from functools import partial
-from django.utils.functional import empty
-from .permissions import IsRoleAdmin
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import views, filters
-from rest_framework.views import APIView
-from .serializers import ProfileRegisterSerializer, TokenSerializer
-from reviews.models import Profile
-from rest_framework import serializers, viewsets, permissions, generics, status
+from rest_framework import (filters, generics, permissions, status, viewsets)
+from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
+                                   ListModelMixin)
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.authentication import JWTAuthentication, JWTTokenUserAuthentication
-from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
-from rest_framework.pagination import PageNumberPagination
-from .utils import mail, get_user
-
-from .serializers import (ProfileSerializer, CommentSerializer, ReviewSerializer,
-                          TokenRestoreSerializer, ProfileSerializerAdmin)
-from api.permissions import IsOwnerModeratorAdminOrReadOnly
-from reviews.models import Title
-from rest_framework.mixins import (CreateModelMixin,
-                                   DestroyModelMixin,
-                                   ListModelMixin)
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters
 
 
-from .serializers import (ProfileSerializer,
-                          CommentSerializer,
-                          ReviewSerializer,
-                          CategorySerializer,
-                          GenreSerializer,
-                          TitleSerializer, TitleSerializerCreate)
+from reviews.models import Category, Genre, Profile, Title
 from .filters import TitlesFilter
-from api.permissions import AdminOrReadOnly
-from reviews.models import Category, Genre, Title
+from .permissions import (AdminOrReadOnly, IsOwnerModeratorAdminOrReadOnly,
+                          IsRoleAdmin)
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, ProfileRegisterSerializer,
+                          ProfileSerializer, ProfileSerializerAdmin,
+                          ReviewSerializer, TitleSerializer,
+                          TitleSerializerCreate, TokenRestoreSerializer,
+                          TokenSerializer)
+from .utils import get_user, mail
 
 
 class CreateProfileView(generics.CreateAPIView):
@@ -61,6 +44,7 @@ class CreateProfileView(generics.CreateAPIView):
 class TokenView(generics.CreateAPIView):
     serializer_class = TokenSerializer
     permission_classes = (permissions.AllowAny,)
+
     def post(self, request):
         serializer = TokenSerializer(data=request.data)
         if serializer.is_valid() is not True:
@@ -78,9 +62,11 @@ class TokenView(generics.CreateAPIView):
         token = str(refresh.access_token)
         return Response({'token': token}, status=status.HTTP_201_CREATED)
 
+
 class RestoreConfCodeView(generics.CreateAPIView):
     serializer_class = TokenRestoreSerializer
     permission_classes = (permissions.AllowAny,)
+
     def post(self, request):
         serializer = TokenRestoreSerializer(data=request.data)
         if serializer.is_valid() is not True:
@@ -94,12 +80,14 @@ class RestoreConfCodeView(generics.CreateAPIView):
         profile.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializerAdmin
     permission_classes = (IsRoleAdmin,)
     filter_backends = (filters.SearchFilter,)
-    filterset_fields =  ('=username')
+    filterset_fields = ('=username')
+
     def retrieve(self, request, **kwargs):
         if self.kwargs.get('pk') == 'me':
             profile = get_object_or_404(Profile, username=get_user(request))
@@ -108,26 +96,31 @@ class ProfileViewSet(viewsets.ModelViewSet):
         profile = get_object_or_404(Profile, username=self.kwargs.get('pk'))
         serializer = self.get_serializer(profile)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
     def partial_update(self, request, *args, **kwargs):
         if self.kwargs.get('pk') == 'me':
             profile = get_object_or_404(Profile, username=get_user(request))
-            serializer = ProfileSerializer(profile, data=request.data, partial=True)
+            serializer = ProfileSerializer(profile,
+                                           data=request.data,
+                                           partial=True)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
         profile = get_object_or_404(Profile, username=self.kwargs.get('pk'))
-        serializer = ProfileSerializerAdmin(profile, data=request.data, partial=True)
+        serializer = ProfileSerializerAdmin(profile,
+                                            data=request.data,
+                                            partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     def destroy(self, request, *args, **kwargs):
         if self.kwargs.get('pk') == 'me':
             return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
         profile = get_object_or_404(Profile, username=self.kwargs.get('pk'))
         self.perform_destroy(profile)
         return Response(status=status.HTTP_204_NO_CONTENT)
-
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -162,6 +155,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
         serializer.save(author=self.request.user, title=title)
+
 
 class CreateDestroyListViewSet(CreateModelMixin,
                                DestroyModelMixin,

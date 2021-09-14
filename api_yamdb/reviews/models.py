@@ -1,10 +1,10 @@
+from datetime import date
+
+from django.conf import settings
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.contrib.auth.models import AbstractUser
-from django.conf import settings
-from rest_framework.fields import CharField
 
-from datetime import date
 
 PERMISSION_LEVEL_CHOICES = [
     ('admin', 'admin'),
@@ -69,7 +69,8 @@ class Title(models.Model):
 class Review(models.Model):
     text = models.TextField(verbose_name='Текст')
     author = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reviews',
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='reviews',
         verbose_name='Автор'
     )
     title = models.ForeignKey(
@@ -112,7 +113,8 @@ class Review(models.Model):
 class Comment(models.Model):
     text = models.TextField(verbose_name='Текст')
     author = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='comments',
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='comments',
         verbose_name='Автор'
     )
     review = models.ForeignKey(

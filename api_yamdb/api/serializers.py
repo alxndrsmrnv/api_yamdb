@@ -1,14 +1,8 @@
-from random import choice, choices
-from re import search
-from django.http import request
-from rest_framework import fields, serializers
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from rest_framework_simplejwt.serializers import TokenObtainSerializer
+from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from django.contrib.auth.password_validation import validate_password
-from rest_framework.relations import SlugRelatedField, StringRelatedField  # Возможно нужно все из serializers использовать
-
-from reviews.models import Comment, Review, Category, Genre, Title, Profile, PERMISSION_LEVEL_CHOICES
+from reviews.models import Category, Comment, Genre, Profile, Review, Title
 
 
 class ProfileRegisterSerializer(serializers.ModelSerializer):
@@ -34,6 +28,7 @@ class TokenSerializer(serializers.Serializer):
     )
     confirmation_code = serializers.CharField(max_length=150, required=True)
 
+
 class TokenRestoreSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=150,
@@ -51,10 +46,12 @@ class ProfileSerializerAdmin(serializers.ModelSerializer):
         required=True,
         validators=[UniqueValidator(queryset=Profile.objects.all())]
     )
+
     class Meta:
         model = Profile
-        fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
-        #fields = '__all__'
+        fields = ('username', 'email', 'first_name',
+                  'last_name', 'bio', 'role')
+
 
 class ProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
@@ -66,12 +63,13 @@ class ProfileSerializer(serializers.ModelSerializer):
         validators=[UniqueValidator(queryset=Profile.objects.all())]
     )
     role = serializers.ReadOnlyField()
+
     class Meta:
         model = Profile
-        fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
-        #fields = '__all__'
+        fields = ('username', 'email', 'first_name',
+                  'last_name', 'bio', 'role')
 
-"""Алексей Третий Разработчик"""
+
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True,
@@ -118,7 +116,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         instance.score = validated_data.get('score', instance.score)
         instance.save()
         return instance
-"""Алексей Третий Разработчик"""
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -136,10 +133,17 @@ class GenreSerializer(serializers.ModelSerializer):
 class TitleSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(read_only=True, many=True)
+    rating = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Title
         fields = '__all__'
+
+    def get_rating(self, obj):
+        rating = obj.reviews.all().aggregate(Avg('score'))['score__avg']
+        if not rating:
+            return rating
+        return int(rating)
 
 
 class TitleSerializerCreate(serializers.ModelSerializer):
@@ -153,6 +157,3 @@ class TitleSerializerCreate(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = '__all__'
-
-
-#

@@ -1,6 +1,8 @@
 import random
+
 from django.core.mail import send_mail
 from rest_framework_simplejwt.authentication import JWTAuthentication
+
 
 def get_confirmation_code():
     str1 = '123456789'
@@ -21,6 +23,7 @@ def get_user(request):
     user = JWT.get_user(validated_token)
     return user
 
+
 def mail(profile):
     code = get_confirmation_code()
     send_mail('Код подтверждения',
@@ -28,5 +31,4 @@ def mail(profile):
               'YaMDb@support.com',
               [f'{profile.email}'],
               fail_silently=False)
-    print(code)
     return code

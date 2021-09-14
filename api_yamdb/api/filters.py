@@ -1,6 +1,7 @@
-from django_filters.filters import CharFilter
 from django_filters import FilterSet
+from django_filters.filters import CharFilter
 from reviews.models import Title
+
 
 class TitlesFilter(FilterSet):
     category = CharFilter(field_name='category__slug', lookup_expr='icontains')
