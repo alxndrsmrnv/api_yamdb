@@ -1,13 +1,10 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-<<<<<<< HEAD
 from django.conf import settings
 from rest_framework.fields import CharField
 
-=======
 from datetime import date
->>>>>>> cat-gen-tit.v2
 
 PERMISSION_LEVEL_CHOICES = [
     ('admin', 'admin'),
@@ -22,15 +19,11 @@ class Profile(AbstractUser):
     role = models.CharField(max_length=10,
                             choices=PERMISSION_LEVEL_CHOICES,
                             default='user')
-<<<<<<< HEAD
     confirmation_code = models.CharField(max_length=12,
                                          blank=True,
                                          editable=False,
                                          null=True,
                                          unique=True)
-=======
-    confirmation_code = models.CharField(max_length=100, blank=True, null=True)
->>>>>>> cat-gen-tit.v2
 
 
 class Category(models.Model):
@@ -60,14 +53,9 @@ class Genre(models.Model):
 
 class Title(models.Model):
     name = models.CharField(max_length=50)
-<<<<<<< HEAD
-    year = models.PositiveSmallIntegerField()
-    category = models.ForeignKey('Categories',
-=======
     year = models.PositiveSmallIntegerField('year', validators=[
         MaxValueValidator(limit_value=date.today().year)])
     category = models.ForeignKey('Category',
->>>>>>> cat-gen-tit.v2
                                  on_delete=models.SET_NULL,
                                  null=True,
                                  related_name='category')

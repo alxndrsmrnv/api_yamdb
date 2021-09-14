@@ -34,7 +34,6 @@ class TokenSerializer(serializers.Serializer):
     )
     confirmation_code = serializers.CharField(max_length=150, required=True)
 
-<<<<<<< HEAD
 class TokenRestoreSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=150,
@@ -56,8 +55,6 @@ class ProfileSerializerAdmin(serializers.ModelSerializer):
         model = Profile
         fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
         #fields = '__all__'
-=======
->>>>>>> new_branch_for_comments_rating_reviews
 
 class ProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
@@ -153,9 +150,6 @@ class TitleSerializerCreate(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = '__all__'
-<<<<<<< HEAD
-=======
-        model = Titles
 
->>>>>>> new_branch_for_comments_rating_reviews
+
 #
