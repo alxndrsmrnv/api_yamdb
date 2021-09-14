@@ -118,7 +118,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-]
+    ]
 }
 
 SIMPLE_JWT = {
@@ -130,4 +130,3 @@ EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = 'C:/Dev/api_yamdb/api_yamdb'
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = 25
-
