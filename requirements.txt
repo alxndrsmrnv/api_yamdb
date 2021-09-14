@@ -4,3 +4,5 @@ djangorestframework==3.12.4
 pytest==6.2.4
 pytest-django==4.4.0
 pytest-pythonpath==0.7.3
+djangorestframework-simplejwt==4.8.0
+django_filter==2.4.0
