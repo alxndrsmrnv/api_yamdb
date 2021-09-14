@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from random import choice, choices
 from re import search
 from django.http import request
@@ -14,9 +15,18 @@ from reviews.models import Comment, Review, Categories, Genres, Title, Profile
 from reviews.models import Comment, Review, Categories, Genres, Titles, Profile, PERMISSION_LEVEL_CHOICES
 >>>>>>> Profile2.0
 
+=======
+from rest_framework import serializers
+from django.contrib.auth import get_user_model
+from rest_framework.validators import UniqueValidator
+
+from reviews.models import Comment, Review, Category, Genre, Title, Profile
+>>>>>>> cat-gen-tit.v2
+
 
 
 class ProfileRegisterSerializer(serializers.ModelSerializer):
+<<<<<<< HEAD
     email = serializers.EmailField(
         required=True,
         validators=[UniqueValidator(queryset=Profile.objects.all())]
@@ -26,6 +36,12 @@ class ProfileRegisterSerializer(serializers.ModelSerializer):
         max_length=150,
         validators=[UniqueValidator(queryset=Profile.objects.all())]
     )
+=======
+    email = serializers.EmailField(required=True,
+                                   validators=[UniqueValidator(
+                                       queryset=Profile.objects.all())])
+    username = serializers.CharField(required=True, max_length=150)
+>>>>>>> cat-gen-tit.v2
 
     class Meta:
         model = Profile
@@ -39,6 +55,7 @@ class TokenSerializer(serializers.Serializer):
     )
     confirmation_code = serializers.CharField(max_length=150, required=True)
 
+<<<<<<< HEAD
 class TokenRestoreSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=150,
@@ -60,6 +77,8 @@ class ProfileSerializerAdmin(serializers.ModelSerializer):
         model = Profile
         fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
         #fields = '__all__'
+=======
+>>>>>>> cat-gen-tit.v2
 
 class ProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
@@ -73,10 +92,18 @@ class ProfileSerializer(serializers.ModelSerializer):
     role = serializers.ReadOnlyField()
     class Meta:
         model = Profile
+<<<<<<< HEAD
         fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
         #fields = '__all__'
+=======
+        fields = ('username', 'email', 'first_name',
+                  'last_name', 'bio', 'role')
+
+>>>>>>> cat-gen-tit.v2
 
 """Алексей Третий Разработчик"""
+
+
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True,
@@ -115,6 +142,7 @@ class ReviewSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Можно оставить только один отзыв на произведение'
             )
+<<<<<<< HEAD
         review = Review.objects.create(**validated_data)
         return review
 
@@ -123,29 +151,43 @@ class ReviewSerializer(serializers.ModelSerializer):
         instance.score = validated_data.get('score', instance.score)
         instance.save()
         return instance
+=======
+        return data
+
+
+>>>>>>> cat-gen-tit.v2
 """Алексей Третий Разработчик"""
 
 
-class CategoriesSerializer(serializers.ModelSerializer):
-    name = StringRelatedField(read_only=True)
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        exclude = ['id', ]
+        model = Category
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    class Meta:
+        exclude = ['id', ]
+        model = Genre
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    category = CategorySerializer(read_only=True)
+    genre = GenreSerializer(read_only=True, many=True)
 
     class Meta:
+        model = Title
         fields = '__all__'
-        model = Categories
 
 
-class GenresSerializer(serializers.ModelSerializer):
-    name = StringRelatedField(read_only=True, many=True)
+class TitleSerializerCreate(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(slug_field='slug',
+                                            queryset=Category.objects.all(),
+                                            required=False)
+    genre = serializers.SlugRelatedField(slug_field='slug',
+                                         queryset=Genre.objects.all(),
+                                         required=False, many=True)
 
     class Meta:
+        model = Title
         fields = '__all__'
-        model = Genres
-
-
-class TitlesSerializer(serializers.ModelSerializer):
-    genre = SlugRelatedField(read_only=True, slug_field='name', many=True)
-    category = SlugRelatedField(read_only=True, slug_field='name')
-
-    class Meta:
-        fields = '__all__'
-        model = Titles

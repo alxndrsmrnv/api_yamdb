@@ -47,6 +47,7 @@ class Test02CategoryAPI:
             'Проверьте, что при POST запросе `/api/v1/categories/` с правильными данными возвращает статус 201'
         )
         response = admin_client.get('/api/v1/categories/')
+        print(response.json())
         assert response.status_code == 200, (
             'Проверьте, что при GET запросе `/api/v1/categories/` возвращает статус 200'
         )

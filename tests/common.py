@@ -9,7 +9,8 @@ def create_users_api(admin_client):
         'role': 'user',
         'email': 'testuser@yamdb.fake'
     }
-    admin_client.post('/api/v1/users/', data=data)
+    response = admin_client.post('/api/v1/users/', data=data)
+    print(response.data)
     user = get_user_model().objects.get(username=data['username'])
     data = {
         'first_name': 'ModerFirstName',
@@ -66,6 +67,7 @@ def create_titles(admin_client):
     data = {'name': 'Поворот туда', 'year': 2000, 'genre': [genres[0]['slug'], genres[1]['slug']],
             'category': categories[0]['slug'], 'description': 'Крутое пике'}
     response = admin_client.post('/api/v1/titles/', data=data)
+    print(response.data)
     data['id'] = response.json()['id']
     result.append(data)
     data = {'name': 'Проект', 'year': 2020, 'genre': [genres[2]['slug']], 'category': categories[1]['slug'],

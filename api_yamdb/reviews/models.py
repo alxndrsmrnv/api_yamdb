@@ -1,30 +1,39 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+<<<<<<< HEAD
 from django.conf import settings
 from rest_framework.fields import CharField
 
+=======
+from datetime import date
+>>>>>>> cat-gen-tit.v2
 
 PERMISSION_LEVEL_CHOICES = [
-    ('admin', 'Администратор'),
-    ('moderator', 'Модератор'),
-    ('user', 'Пользователь')
+    ('admin', 'admin'),
+    ('moderator', 'moderator'),
+    ('user', 'user'),
 ]
+
 
 class Profile(AbstractUser):
     bio = models.TextField('Биография',
-                           blank=True)
+                           blank=True, null=True)
     role = models.CharField(max_length=10,
                             choices=PERMISSION_LEVEL_CHOICES,
                             default='user')
+<<<<<<< HEAD
     confirmation_code = models.CharField(max_length=12,
                                          blank=True,
                                          editable=False,
                                          null=True,
                                          unique=True)
+=======
+    confirmation_code = models.CharField(max_length=100, blank=True, null=True)
+>>>>>>> cat-gen-tit.v2
 
 
-class Categories(models.Model):
+class Category(models.Model):
     name = models.CharField(max_length=50,
                             verbose_name='Наименование категории')
     slug = models.SlugField(max_length=255,
@@ -37,7 +46,7 @@ class Categories(models.Model):
         verbose_name_plural = 'Категории'
 
 
-class Genres(models.Model):
+class Genre(models.Model):
     name = models.CharField(max_length=50, verbose_name='Наименование жанра')
     slug = models.SlugField(max_length=255,
                             db_index=True,
@@ -49,21 +58,24 @@ class Genres(models.Model):
         verbose_name_plural = 'Жанры'
 
 
-class Titles(models.Model):
+class Title(models.Model):
     name = models.CharField(max_length=50)
+<<<<<<< HEAD
     year = models.PositiveSmallIntegerField()
     category = models.ForeignKey('Categories',
+=======
+    year = models.PositiveSmallIntegerField('year', validators=[
+        MaxValueValidator(limit_value=date.today().year)])
+    category = models.ForeignKey('Category',
+>>>>>>> cat-gen-tit.v2
                                  on_delete=models.SET_NULL,
                                  null=True,
                                  related_name='category')
-    genre = models.ManyToManyField(Genres)
+    genre = models.ManyToManyField(Genre)
+    description = models.TextField(verbose_name='Описание')
 
     def __str__(self):
-        return self.title
-
-
-
-
+        return self.name
 
 
 class Review(models.Model):
