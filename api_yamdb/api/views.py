@@ -17,7 +17,7 @@ from rest_framework.pagination import PageNumberPagination
 from .utils import mail, get_user
 
 from .serializers import (ProfileSerializer, CommentSerializer, ReviewSerializer,
-                          CategoriesSerializer, GenresSerializer, TitlesSerializer, TokenRestoreSerializer)
+                          CategoriesSerializer, GenresSerializer, TitlesSerializer, TokenRestoreSerializer, ProfileSerializerAdmin)
 from api.permissions import IsOwnerModeratorAdminOrReadOnly
 from reviews.models import Categories, Genres, Titles
 
@@ -73,8 +73,6 @@ class RestoreConfCodeView(generics.CreateAPIView):
         profile = get_object_or_404(Profile,
                                     username=request.data.get('username'))
         if profile.email is not True:
-            print(profile.email)
-            print(serializer.validated_data.get('email'))
             profile.email = serializer.validated_data.get('email')
         profile.confirmation_code = mail(profile)
         profile.save()
@@ -83,7 +81,7 @@ class RestoreConfCodeView(generics.CreateAPIView):
 
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
+    serializer_class = ProfileSerializerAdmin
     permission_classes = (IsRoleAdmin,)
     filter_backends = (filters.SearchFilter,)
     filterset_fields =  ('=username')
@@ -96,13 +94,21 @@ class ProfileViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(profile)
         return Response(serializer.data, status=status.HTTP_200_OK)
     def partial_update(self, request, *args, **kwargs):
+        if self.kwargs.get('pk') == 'me':
+            profile = get_object_or_404(Profile, username=get_user(request))
+            serializer = ProfileSerializer(profile, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
         profile = get_object_or_404(Profile, username=self.kwargs.get('pk'))
-        serializer = ProfileSerializer(profile, data=request.data, partial=True)
+        serializer = ProfileSerializerAdmin(profile, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     def destroy(self, request, *args, **kwargs):
+        if self.kwargs.get('pk') == 'me':
+            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
         profile = get_object_or_404(Profile, username=self.kwargs.get('pk'))
         self.perform_destroy(profile)
         return Response(status=status.HTTP_204_NO_CONTENT)

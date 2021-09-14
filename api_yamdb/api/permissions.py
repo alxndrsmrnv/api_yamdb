@@ -18,14 +18,12 @@ class IsOwnerModeratorAdminOrReadOnly(permissions.BasePermission):
 
 
 class IsRoleAdmin(permissions.BasePermission):
-    print('x')
+
     def has_permission(self, request, view):
         if request.headers.get('Authorization'):
             user = get_user(request)
-            print(self)
-            return user.role == 'admin' or request.user.is_superuser or request.kwargs.get('pk') == 'me'
+            return user.role == 'admin' or request.user.is_superuser or request.path == '/api/v1/users/me/'
     def has_object_permission(self, request, view, obj):
-        print(obj.owner)
         return obj.owner == get_user(request)
 
 
