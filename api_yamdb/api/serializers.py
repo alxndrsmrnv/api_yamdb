@@ -121,7 +121,7 @@ class CategoriesSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Categories
-
+##test
 
 class GenresSerializer(serializers.ModelSerializer):
     name = StringRelatedField(read_only=True, many=True)
