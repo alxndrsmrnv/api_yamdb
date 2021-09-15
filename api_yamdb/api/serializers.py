@@ -120,30 +120,24 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
-        exclude = ['id', ]
+        exclude = ('id',)
         model = Category
 
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
-        exclude = ['id', ]
+        exclude = ('id',)
         model = Genre
 
 
 class TitleSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(read_only=True, many=True)
-    rating = serializers.SerializerMethodField(read_only=True)
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Title
         fields = '__all__'
-
-    def get_rating(self, obj):
-        rating = obj.reviews.all().aggregate(Avg('score'))['score__avg']
-        if not rating:
-            return rating
-        return int(rating)
 
 
 class TitleSerializerCreate(serializers.ModelSerializer):

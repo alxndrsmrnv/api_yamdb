@@ -6,6 +6,7 @@ from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.db.models import Avg
 
 
 from reviews.models import Category, Genre, Profile, Title
@@ -185,7 +186,7 @@ class CategoriesViewSet(CreateDestroyListViewSet):
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
     serializer_class = TitleSerializer
     pagination_class = PageNumberPagination
     permission_classes = (AdminOrReadOnly,)
