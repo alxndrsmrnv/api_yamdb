@@ -1,4 +1,3 @@
-from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -88,17 +87,11 @@ class ReviewSerializer(serializers.ModelSerializer):
         slug_field='username',
         default=serializers.CurrentUserDefault()
     )
+    score = serializers.IntegerField(min_value=1, max_value=10)
 
     class Meta:
         model = Review
         exclude = ('title',)
-
-    def validate_score(self, value):
-        if not isinstance(value, int) or not (value in range(1, 11)):
-            raise serializers.ValidationError(
-                'Оценка должна быть целым числом от 1 до 10'
-            )
-        return value
 
     def create(self, validated_data):
         view = self.context['view']
@@ -110,12 +103,6 @@ class ReviewSerializer(serializers.ModelSerializer):
             )
         review = Review.objects.create(**validated_data)
         return review
-
-    def update(self, instance, validated_data):
-        instance.text = validated_data.get('text', instance.text)
-        instance.score = validated_data.get('score', instance.score)
-        instance.save()
-        return instance
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -133,17 +120,11 @@ class GenreSerializer(serializers.ModelSerializer):
 class TitleSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(read_only=True, many=True)
-    rating = serializers.SerializerMethodField(read_only=True)
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Title
         fields = '__all__'
-
-    def get_rating(self, obj):
-        rating = obj.reviews.all().aggregate(Avg('score'))['score__avg']
-        if not rating:
-            return rating
-        return int(rating)
 
 
 class TitleSerializerCreate(serializers.ModelSerializer):
