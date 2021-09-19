@@ -6,6 +6,7 @@ from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
                                    ListModelMixin)
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db.models import Avg
 
@@ -20,7 +21,7 @@ from .serializers import (CategorySerializer, CommentSerializer,
                           ReviewSerializer, TitleSerializer,
                           TitleSerializerCreate, TokenRestoreSerializer,
                           TokenSerializer)
-from .utils import get_user, mail
+from .utils import mail
 
 
 class CreateProfileView(generics.CreateAPIView):
@@ -30,9 +31,6 @@ class CreateProfileView(generics.CreateAPIView):
 
     def post(self, request):
         serializer = ProfileRegisterSerializer(data=request.data)
-        if request.data.get('username') == 'me':
-            return Response('Нельзя брать имя me',
-                            status=status.HTTP_400_BAD_REQUEST)
         if serializer.is_valid():
             serializer.save()
             profile = get_object_or_404(Profile,
@@ -49,18 +47,16 @@ class TokenView(generics.CreateAPIView):
 
     def post(self, request):
         serializer = TokenSerializer(data=request.data)
-        if serializer.is_valid() is not True:
+        if not serializer.is_valid():
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
-        profile = Profile.objects.filter(username=request.data.get('username'))
-        if len(profile) == 0:
-            return Response('Пользователя с таким username не существует',
-                            status=status.HTTP_404_NOT_FOUND)
+        profile = get_object_or_404(Profile,
+                                    username=request.data.get('username'))
         confirmation_code = request.data.get('confirmation_code')
-        if profile[0].confirmation_code != confirmation_code:
+        if profile.confirmation_code != confirmation_code:
             return Response('Неверный код подтверждения',
                             status=status.HTTP_400_BAD_REQUEST)
-        refresh = RefreshToken.for_user(profile[0])
+        refresh = RefreshToken.for_user(profile)
         token = str(refresh.access_token)
         return Response({'token': token}, status=status.HTTP_201_CREATED)
 
@@ -71,12 +67,12 @@ class RestoreConfCodeView(generics.CreateAPIView):
 
     def post(self, request):
         serializer = TokenRestoreSerializer(data=request.data)
-        if serializer.is_valid() is not True:
+        if not serializer.is_valid():
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
         profile = get_object_or_404(Profile,
                                     username=request.data.get('username'))
-        if profile.email is not True:
+        if not profile.email:
             profile.email = serializer.validated_data.get('email')
         profile.confirmation_code = mail(profile)
         profile.save()
@@ -90,24 +86,27 @@ class ProfileViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     filterset_fields = ('=username')
 
-    def retrieve(self, request, **kwargs):
-        if self.kwargs.get('pk') == 'me':
-            profile = get_object_or_404(Profile, username=get_user(request))
+    @action(detail=False, methods=['get', 'patch'])
+    def me(self, request):
+        print(request)
+        if request.method == 'GET':
+            profile = get_object_or_404(Profile, username=request.user)
             serializer = self.get_serializer(profile)
             return Response(serializer.data, status=status.HTTP_200_OK)
+        profile = get_object_or_404(Profile, username=request.user)
+        serializer = ProfileSerializer(profile,
+                                       data=request.data,
+                                       partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, **kwargs):
         profile = get_object_or_404(Profile, username=self.kwargs.get('pk'))
         serializer = self.get_serializer(profile)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def partial_update(self, request, *args, **kwargs):
-        if self.kwargs.get('pk') == 'me':
-            profile = get_object_or_404(Profile, username=get_user(request))
-            serializer = ProfileSerializer(profile,
-                                           data=request.data,
-                                           partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
         profile = get_object_or_404(Profile, username=self.kwargs.get('pk'))
         serializer = ProfileSerializerAdmin(profile,
                                             data=request.data,
@@ -118,8 +117,6 @@ class ProfileViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, *args, **kwargs):
-        if self.kwargs.get('pk') == 'me':
-            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
         profile = get_object_or_404(Profile, username=self.kwargs.get('pk'))
         self.perform_destroy(profile)
         return Response(status=status.HTTP_204_NO_CONTENT)

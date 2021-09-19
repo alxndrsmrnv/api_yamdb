@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from rest_framework.exceptions import ValidationError
 
 
 PERMISSION_LEVEL_CHOICES = [
@@ -24,6 +25,20 @@ class Profile(AbstractUser):
                                          editable=False,
                                          null=True,
                                          unique=True)
+
+    def save(self, *args, **kwargs):
+        if self.username == 'me':
+            raise ValidationError('Нельзя брать username me')
+        super().save(*args, **kwargs)
+
+    def is_admin(self):
+        return 'admin'
+
+    def is_user(self):
+        return 'user'
+
+    def is_moderator(self):
+        return 'moderator'
 
 
 class Category(models.Model):
