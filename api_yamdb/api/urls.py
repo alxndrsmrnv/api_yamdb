@@ -7,7 +7,6 @@ from .views import (CategoriesViewSet, CreateProfileView, GenresViewSet,
                     TokenView)
 
 router_v1 = DefaultRouter()
-#router_v1.register(r'users/(?P<username>\d+)', ProfileViewSet)
 router_v1.register(r'categories', CategoriesViewSet)
 router_v1.register(r'genres', GenresViewSet)
 router_v1.register(r'titles', TitlesViewSet)
