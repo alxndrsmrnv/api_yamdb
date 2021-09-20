@@ -32,13 +32,13 @@ class Profile(AbstractUser):
         super().save(*args, **kwargs)
 
     def is_admin(self):
-        return 'admin'
+        return self.role == 'admin'
 
     def is_user(self):
-        return 'user'
+        return self.role == 'user'
 
     def is_moderator(self):
-        return 'moderator'
+        return self.role == 'moderator'
 
 
 class Category(models.Model):

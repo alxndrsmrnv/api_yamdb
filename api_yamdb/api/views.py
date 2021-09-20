@@ -85,41 +85,22 @@ class ProfileViewSet(viewsets.ModelViewSet):
     permission_classes = (IsRoleAdmin,)
     filter_backends = (filters.SearchFilter,)
     filterset_fields = ('=username')
+    lookup_field = 'username'
 
-    @action(detail=False, methods=['get', 'patch'])
+    @action(detail=False,
+            methods=['get', 'patch'],
+            permission_classes=(permissions.IsAuthenticated,))
     def me(self, request):
-        print(request)
         if request.method == 'GET':
             profile = get_object_or_404(Profile, username=request.user)
             serializer = self.get_serializer(profile)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        profile = get_object_or_404(Profile, username=request.user)
-        serializer = ProfileSerializer(profile,
+        serializer = ProfileSerializer(request.user,
                                        data=request.data,
                                        partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def retrieve(self, request, **kwargs):
-        profile = get_object_or_404(Profile, username=self.kwargs.get('pk'))
-        serializer = self.get_serializer(profile)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def partial_update(self, request, *args, **kwargs):
-        profile = get_object_or_404(Profile, username=self.kwargs.get('pk'))
-        serializer = ProfileSerializerAdmin(profile,
-                                            data=request.data,
-                                            partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def destroy(self, request, *args, **kwargs):
-        profile = get_object_or_404(Profile, username=self.kwargs.get('pk'))
-        self.perform_destroy(profile)
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -192,6 +173,6 @@ class TitlesViewSet(viewsets.ModelViewSet):
     filterset_class = TitlesFilter
 
     def get_serializer_class(self):
-        if self.action in ['list', 'retrieve']:
+        if self.action in ('list', 'retrieve'):
             return TitleSerializer
         return TitleSerializerCreate
